@@ -27,6 +27,10 @@ public abstract class Luminary {
 		connection.send(connection.buildColor(this,r,g,b,timeInMilliseconds));
 		connection.recv();
 	}
+	public void setTemperature(short temp,short timeInMilliseconds) throws IOException{
+		connection.send(connection.buildTemp(this,temp,timeInMilliseconds));
+		connection.recv();
+	}
 	
 
 	public abstract byte[] buildCommand(byte command, byte[] b);

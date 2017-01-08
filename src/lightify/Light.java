@@ -10,7 +10,7 @@ public class Light extends Luminary {
 	byte r,g,b;
 	byte luminance;
 	boolean on;
-	int temp;
+	short temp;
 	
 	public Light(Lightify Connection, String Name, byte[] Addr) {
 		super(Connection, Name);
@@ -57,8 +57,9 @@ public class Light extends Luminary {
 		}
 	}
 	
-	public void setTemperature(byte temperature){
-		throw new NotImplementedException();
+	public void setTemperature(short temperature,short time) throws IOException{
+		this.temp=temperature;
+		super.setTemperature(temp, time);
 	}
 	
 	public void setRGB(byte r,byte g,byte b,short time) throws IOException{

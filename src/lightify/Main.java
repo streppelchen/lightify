@@ -14,11 +14,8 @@ public class Main {
 		
 		for(Entry<String,Group> g:lify.groups.entrySet()){
 			if(g.getValue().name.equals("Wohnzimmer")){
-				g.getValue().setOnOff(true);
-				g.getValue().setRGB((byte)0xff, (byte)0, (byte)0,(short) 0);
-				
-				Thread.sleep(10000);
-				g.getValue().setOnOff(false);
+				g.getValue().setTemperature((short)4000, (short)10);
+				g.getValue().setLuminance((byte)0xff, (short)10);
 			}
 			
 			

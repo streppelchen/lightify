@@ -173,7 +173,7 @@ public class Lightify {
 				namebuf[j]=bb.get();
 			}
 			String name = new String(namebuf,"cp437");
-			
+			name = name.trim();
 			//name.replace("\0", "");
 			
 			if(!lights.containsKey(addr)){
@@ -263,6 +263,11 @@ public class Lightify {
 	private byte[] buildGroupInfo(Group g) {
 		// TODO Auto-generated method stub
 		return buildCommand(Commands.COMMAND_GROUP_INFO, g.index, new byte[]{});
+	}
+
+	public byte[] buildTemp(Luminary luminary, short temp, short timeInMilliseconds) {
+		// TODO Auto-generated method stub
+		return luminary.buildCommand(Commands.COMMAND_TEMP, ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putShort(temp).putShort(timeInMilliseconds).array());
 	}
 
 }
