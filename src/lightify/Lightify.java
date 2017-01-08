@@ -6,8 +6,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-
-
+import java.util.Map.Entry;
 import java.nio.*;
 
 public class Lightify {
@@ -16,6 +15,8 @@ public class Lightify {
 	int port;
 	
 	HashMap<byte[],Light> lights = new HashMap<byte[],Light>();
+	HashMap<String,Group> groups = new HashMap<>();
+
 	Socket connection;
 	OutputStream outputStream;
 	InputStream inputStream;
@@ -98,7 +99,6 @@ public class Lightify {
 		byte[] data = readFromInputStreamBytes(lengthsize);
 		int length = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getShort();
 		
-		System.out.println(data.length);
 		int expected = length+lengthsize-data.length;
 		return readFromInputStreamBytes(expected);
 	}
@@ -173,7 +173,7 @@ public class Lightify {
 				namebuf[j]=bb.get();
 			}
 			String name = new String(namebuf,"cp437");
-			System.out.println(name);
+			
 			//name.replace("\0", "");
 			
 			if(!lights.containsKey(addr)){
@@ -193,6 +193,76 @@ public class Lightify {
 		}
 		
 	}
+	public void groupInfo(Group g) throws IOException{
+		ArrayList<Light> lights = new ArrayList<>();
+		byte[] data = buildGroupInfo(g);
+		send(data);
+		data = recv();
+		ByteBuffer bb = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
+		bb.position(6);
+		int idx = bb.getShort();
+		byte[] namebuf = new byte[16];
+		for(int j=0;j<16;j++){
+			namebuf[j]=bb.get();
+		}
+		String name=new String(namebuf,"cp437");
+		int num=bb.get();
+		
+		
+		for(int i=0;i<num;i++){
+			int pos = 6+19+i*8;
+			bb.position(pos);
+			byte[] addr = new byte[8];
+			for(int j=0;j<8;j++){
+				addr[j]=bb.get();
+			}
+			lights.add(this.lights.get(addr));
+		}
+		g.lights=lights;
+		
+		
+	}
 	
+	
+	
+	public HashMap<String, Group> groupList() throws IOException{
+		HashMap<String,Group> groups = new HashMap<>();
+		byte[] data = buildGroupList();
+		send(data);
+		data = recv();
+		int num = ByteBuffer.wrap(data, 6, 2).getShort(); //anzahl lampen
+		
+		for(int i=0;i<num;i++){
+			int pos = 9+i*18;
+			ByteBuffer bb = ByteBuffer.wrap(data,pos,18).order(ByteOrder.LITTLE_ENDIAN);
+			int idx = bb.getShort();
+			
+			byte[] namebuf = new byte[16];
+			for(int j=0;j<16;j++){
+				namebuf[j]=bb.get();
+			}
+			String name = new String(namebuf,"cp437");
+			
+			name.replace("\0", "");
+			name.replace("\"", "");
+			name = name.trim();
+			
+			groups.put(name,new Group(this,name,idx));
+		}
+		return groups;
+	}
+	
+	public void updateGroupList() throws IOException{
+		HashMap<String,Group> groups = groupList();
+		for(Entry<String, Group> g:groups.entrySet()){
+			groupInfo(g.getValue());
+		}
+		this.groups=groups;
+	}
+
+	private byte[] buildGroupInfo(Group g) {
+		// TODO Auto-generated method stub
+		return buildCommand(Commands.COMMAND_GROUP_INFO, g.index, new byte[]{});
+	}
 
 }
